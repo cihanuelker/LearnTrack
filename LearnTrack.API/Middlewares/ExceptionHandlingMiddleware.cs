@@ -15,6 +15,10 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         {
             await _next(context);
         }
+        catch (ValidationException ex)
+        {
+            await WriteProblemDetailsAsync(context, HttpStatusCode.BadRequest, "Validation Error", string.Join("; ", ex.Errors));
+        }
         catch (ConflictException ex)
         {
             await WriteProblemDetailsAsync(context, HttpStatusCode.Conflict, "Conflict", ex.Message);
@@ -22,6 +26,22 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         catch (UnauthorizedAccessException ex)
         {
             await WriteProblemDetailsAsync(context, HttpStatusCode.Unauthorized, "Unauthorized", ex.Message);
+        }
+        catch (InvalidCredentialsException ex)
+        {
+            await WriteProblemDetailsAsync(context, HttpStatusCode.Unauthorized, "Conflict", ex.Message);
+        }
+        catch (UnauthorizedException ex)
+        {
+            await WriteProblemDetailsAsync(context, HttpStatusCode.Unauthorized, "Unauthorized", ex.Message);
+        }
+        catch (ForbiddenException ex)
+        {
+            await WriteProblemDetailsAsync(context, HttpStatusCode.Forbidden, "Forbidden", ex.Message);
+        }
+        catch (NotFoundException ex)
+        {
+            await WriteProblemDetailsAsync(context, HttpStatusCode.NotFound, "Not Found", ex.Message);
         }
         catch (Exception ex)
         {

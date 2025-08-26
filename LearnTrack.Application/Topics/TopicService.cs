@@ -1,4 +1,5 @@
 ﻿using LearnTrack.Application.Auth.Interfaces;
+using LearnTrack.Application.Exceptions;
 using LearnTrack.Application.Topics.Interfaces;
 using LearnTrack.Domain.Entities;
 
@@ -42,10 +43,10 @@ public class TopicService(
     public async Task<TopicDto?> GetByIdAsync(Guid id)
     {
         var userId = _currentUserService.GetUserId();
-        var topic = await _topicRepository.GetByIdAsync(id);
+        var topic = await _topicRepository.GetByIdAsync(id) ?? throw new NotFoundException($"Topic with ID '{id}' not found.");
 
-        if (topic is null || topic.UserId != userId)
-            return null;
+        if (topic.UserId != userId)
+            throw new ForbiddenException("You do not have access to this topic.");
 
         return ConvertToDto(topic);
     }
@@ -53,10 +54,10 @@ public class TopicService(
     public async Task<bool> UpdateAsync(Guid id, TopicRequest request)
     {
         var userId = _currentUserService.GetUserId();
-        var topic = await _topicRepository.GetByIdAsync(id);
+        var topic = await _topicRepository.GetByIdAsync(id) ?? throw new NotFoundException($"Topic with ID '{id}' not found.");
 
-        if (topic is null || topic.UserId != userId)
-            return false;
+        if (topic.UserId != userId)
+            throw new ForbiddenException("You cannot update this topic.");
 
         topic.Name = request.Name;
         topic.Description = request.Description;
@@ -69,12 +70,12 @@ public class TopicService(
     public async Task DeleteAsync(Guid id)
     {
         var userId = _currentUserService.GetUserId();
-        var topic = await _topicRepository.GetByIdAsync(id);
+        var topic = await _topicRepository.GetByIdAsync(id) ?? throw new NotFoundException($"Topic with ID '{id}' not found.");
 
-        if (topic is not null && topic.UserId == userId)
-        {
-            await _topicRepository.DeleteAsync(topic);
-        }
+        if (topic.UserId != userId)
+            throw new ForbiddenException("You cannot delete this topic.");
+
+        await _topicRepository.DeleteAsync(topic);
     }
 
     private static TopicDto ConvertToDto(Topic topic)

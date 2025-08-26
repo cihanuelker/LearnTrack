@@ -51,15 +51,12 @@ public class AuthService(
 
     public async Task<AuthResult> LoginAsync(LoginRequest request)
     {
-        var user = await _userRepository.GetByUsernameAsync(request.Username);
+        var user = await _userRepository.GetByUsernameAsync(request.Username) ?? throw new InvalidCredentialsException();
 
-        if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash, user.PasswordSalt))
-        {
-            throw new Exception("Invalid credentials");
-        }
+        if (!_passwordHasher.Verify(request.Password, user.PasswordHash, user.PasswordSalt))
+            throw new InvalidCredentialsException();
 
         var token = _jwtTokenGenerator.GenerateToken(user);
-
         return new AuthResult(token, user.Username, user.Role.ToString());
     }
 }

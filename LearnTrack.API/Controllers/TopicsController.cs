@@ -21,9 +21,9 @@ public class TopicsController(ITopicService topicService) : ControllerBase
         var validationResult = await validator.ValidateAsync(request);
 
         if (!validationResult.IsValid)
-        {
-            return BadRequest(validationResult.Errors);
-        }
+            throw new ValidationException(
+                string.Join(";", validationResult.Errors.Select(e => e.ErrorMessage))
+                );
 
         var topic = await _topicService.CreateAsync(request);
         return Ok(topic);
@@ -40,8 +40,6 @@ public class TopicsController(ITopicService topicService) : ControllerBase
     public async Task<ActionResult<TopicDto>> GetById(Guid id)
     {
         var topic = await _topicService.GetByIdAsync(id);
-        if (topic is null)
-            return NotFound();
 
         return Ok(topic);
     }
@@ -56,9 +54,7 @@ public class TopicsController(ITopicService topicService) : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] TopicRequest request)
     {
-        var success = await _topicService.UpdateAsync(id, request);
-        if (!success)
-            return NotFound();
+        await _topicService.UpdateAsync(id, request);
 
         return NoContent();
     }
