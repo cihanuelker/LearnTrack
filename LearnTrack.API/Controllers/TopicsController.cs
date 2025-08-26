@@ -58,4 +58,11 @@ public class TopicsController(ITopicService topicService) : ControllerBase
 
         return NoContent();
     }
+
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> SetDoneStatus(Guid id, [FromBody] TopicStatusRequest request)
+    {        
+        await _topicService.SetDoneStatusAsync(id, request);
+        return NoContent();
+    }
 }

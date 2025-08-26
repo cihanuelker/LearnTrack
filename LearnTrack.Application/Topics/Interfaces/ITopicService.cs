@@ -6,5 +6,6 @@ public interface ITopicService
     Task<IEnumerable<TopicDto>> GetAllAsync();
     Task<TopicDto?> GetByIdAsync(Guid id);
     Task DeleteAsync(Guid id);
-    Task<bool> UpdateAsync(Guid id, TopicRequest request);
+    Task UpdateAsync(Guid id, TopicRequest request);
+    Task SetDoneStatusAsync(Guid id, TopicStatusRequest request);
 }

@@ -51,7 +51,7 @@ public class TopicService(
         return ConvertToDto(topic);
     }
 
-    public async Task<bool> UpdateAsync(Guid id, TopicRequest request)
+    public async Task UpdateAsync(Guid id, TopicRequest request)
     {
         var userId = _currentUserService.GetUserId();
         var topic = await _topicRepository.GetByIdAsync(id) ?? throw new NotFoundException($"Topic with ID '{id}' not found.");
@@ -64,7 +64,20 @@ public class TopicService(
         topic.Tags = request.Tags;
 
         await _topicRepository.UpdateAsync(topic);
-        return true;
+    }
+
+    public async Task SetDoneStatusAsync(Guid id, TopicStatusRequest request)
+    {
+        var userId = _currentUserService.GetUserId();
+        var topic = await _topicRepository.GetByIdAsync(id)
+                    ?? throw new NotFoundException($"Topic with ID '{id}' not found.");
+
+        if (topic.UserId != userId)
+            throw new ForbiddenException("You cannot update this topic.");
+
+        topic.IsDone = request.IsDone;
+
+        await _topicRepository.UpdateAsync(topic);
     }
 
     public async Task DeleteAsync(Guid id)
